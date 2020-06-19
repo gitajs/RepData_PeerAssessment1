@@ -1,0 +1,40 @@
+# Assignment for Week 2 - Reproducible Research
+### Author: APS
+
+This is an assignment for peer assessment for Reproducible Research.
+First we will unzip the data and read the file.
+
+```{r, cache=TRUE, echo=TRUE}
+unzip("activity.zip")
+activity <- read.csv("./activity.csv", sep = ",")
+str(activity)
+head(activity)
+```
+
+Here, I convert date column to Date class from factor.
+
+```{r, echo=TRUE}
+activity$date <- as.Date(activity$date, "%Y-%m-%d")
+```
+
+Here is the code to calculate the total number of steps taken each day, and plot this as a histogram.
+
+```{r histogram, echo=TRUE}
+activity1 <- aggregate(steps ~ date, activity, sum)
+head(activity1)
+hist(activity1$steps, xlab = "Total number of Steps taken each day", main = "Histogram of total steps")
+```
+
+Here is the code to calculate mean number of steps taken per day.
+
+```{r activiy.mean, echo=TRUE}
+activity.mean <- aggregate(steps ~ date, activity, mean)
+activity.mean
+```
+
+Here is the code to calculate median number of steps taken per day.
+
+```{r activity.median, echo=TRUE}
+activity.median <- aggregate(steps ~ date, activity, median)
+activity.median
+```
