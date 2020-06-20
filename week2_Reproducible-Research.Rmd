@@ -2,6 +2,8 @@
 ### Author: APS
 
 This is an assignment for peer assessment for Reproducible Research.
+
+## Loading the data
 First we will unzip the data and read the file.
 
 ```{r, cache=TRUE, echo=TRUE}
@@ -11,13 +13,17 @@ str(activity)
 head(activity)
 ```
 
+## Processing the data
+
 Here, I convert date column to Date class from factor.
 
 ```{r, echo=TRUE}
 activity$date <- as.Date(activity$date, "%Y-%m-%d")
 ```
 
-Here is the code to calculate the total number of steps taken each day, and plot this as a histogram.
+## Mean total number of steps taken per day
+
+1. Here is the code to calculate the total number of steps taken each day, and plot this as a histogram.
 
 ```{r histogram, echo=TRUE}
 activity1 <- aggregate(steps ~ date, activity, sum)
@@ -25,7 +31,7 @@ head(activity1)
 hist(activity1$steps, xlab = "Total number of Steps taken each day", main = "Histogram of total steps")
 ```
 
-Here is the code to calculate mean number of steps taken per day.
+2. Here is the code to calculate mean number of steps taken per day.
 
 ```{r activiy.mean, echo=TRUE}
 activity.mean <- aggregate(steps ~ date, activity, mean)
@@ -38,3 +44,89 @@ Here is the code to calculate median number of steps taken per day.
 activity.median <- aggregate(steps ~ date, activity, median)
 activity.median
 ```
+
+## Average daily activity pattern
+
+1. Calculate daily activity pattern.
+
+```{r activityPattern, echo=TRUE}
+activity.int <- aggregate(steps ~ interval, activity, mean)
+with(activity.int, plot(interval, steps, type = "l", main = "Time-series plot of average daily activity pattern"))
+```
+
+2. Code to calculate the 5-minute interval that contains maximum number of steps on average across all the days in the dataset.
+
+```{r maximumActivity, echo=TRUE}
+max.int <- activity.int[which.max(activity.int$steps), ]
+x <- max.int$interval
+```
+
+Interval `r x` contains maximum number of steps n average across all the days in the dataset.
+
+## Imputing missing values
+
+1. Calculate the total number of missing value in the dataset.
+
+```{r missing.values, echo=TRUE}
+na.data <- sum(is.na(activity))
+```
+
+Data contains `r na.data` missing values.
+
+2. Fill missing values with the mean value for the 5-minute interval
+
+This code imputes missing values with the mean for that 5-minute interval.
+
+```{r fill.missing.values, echo=TRUE}
+library(zoo)
+impute.activity <- activity
+impute.activity$steps <- na.aggregate(impute.activity$steps, by = impute.activity$interval)
+head(impute.activity)
+```
+
+3. With the abovementioned code, *impute.activity* - a new data set, is created that is equal to the original dataset with the missing data filled in.
+
+4. This code generates a histogram for the imputed dataset.
+
+```{r histogram.imputed.data, echo=TRUE}
+impute.activity1 <- aggregate(steps ~ date, impute.activity, sum)
+hist(impute.activity1$steps, xlab = "Total number of Steps taken each day", main = "Histogram of total steps")
+```
+
+Following code calculates mean number of steps taken per day.
+
+```{r mean.imputed.activity, echo=TRUE}
+imputed.mean <- aggregate(steps ~ date, impute.activity, mean)
+imputed.mean
+```
+
+Following code calculates median number of steps taken per day.
+
+```{r median.imputed.activity, echo=TRUE}
+imputed.median <- aggregate(steps ~ date, impute.activity, median)
+imputed.median
+```
+
+Imputed values don't change the general pattern of the histogram. However, median values are significantly affected.
+
+## Differences in activity patterns between weekdays and weekends
+
+1. Create a factor variable in the dataset with two levels -- "weekday" and "weekend".
+
+```{r weekdays, echo=TRUE}
+library(timeDate)
+library(dplyr)
+week.activity <- activity %>% mutate(weekday = isWeekday(activity$date))
+head(week.activity)
+week.activity <- transform(week.activity, weekday = factor(weekday))
+```
+
+The code above creates a logical factor variable indicating weekdays (TRUE) and weekends (FALSE).
+
+2. Here is the code to generate lattice plot showing differences in activity patterns between weekdays and weekends.
+
+```{r plot, echo=TRUE}
+library(lattice)
+xyplot(steps ~ interval | weekday, data = week.activity, layout = c(1, 2), type = "l", strip = strip.custom(factor.levels = c("Weekday", "Weekend")))
+```
+
